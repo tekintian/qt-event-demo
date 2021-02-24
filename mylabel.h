@@ -20,6 +20,10 @@ public:
     // 事件分发器 定义
     virtual bool event(QEvent *e);
 
+    // 事件过滤器
+    virtual bool eventFilter(QObject *watched, QEvent *event);
+
+
 signals:
 
 };

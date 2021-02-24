@@ -47,7 +47,7 @@ void MyLabel::mouseMoveEvent(QMouseEvent *ev)
 
 /**
  * 父类的事件分发器重写实现
- * 根据事件类型处理想要处理的事件后返回true; 其他的事件在调用父类的事件分发器继续处理.
+ * 根据事件类型处理想要处理的事件后返回 bool ; 其他的事件在调用父类的事件分发器继续处理.
  * @brief MyLabel::event 重写父类的事件分发器
  * @param e 事件
  * @return
@@ -56,10 +56,43 @@ bool MyLabel::event(QEvent *e)
 {
     if(QEvent::MouseButtonPress  == e->type() )
     {
-        qDebug()<<"我捕获了鼠标按下"<<endl;
-        return true; // 返回 true 表示本事件已经处理好了, 其他不会再处理; 如果不返回true则父类中的事件处理会再次处理本事件
+        qDebug()<<"我捕获了鼠标按下";
+
+        // 由于 QEvent类中没有 x y 坐标信息, 而 QMouseEvent类中有xy坐标信息, 所以我们可以使用static_cast将 QEvent转换为 QMouseEvent
+        QMouseEvent *ev = static_cast<QMouseEvent *>(e);
+        qDebug("事件分发中鼠标按下的坐标 x=%d , y=%d ",ev->x(),ev->y() );
+
+        return true; // 返回 true 表示本事件已经处理好了, 其他不会再处理; 如果这里不返回,则会返回父类中的事件处理会再次处理本事件
     }
 
     // 调用父类的event事件分发器处理其他事件  本类中的父类为QLavel,所以就调用的QLabel::event
     return QLabel::event(e);
+}
+
+/**
+ * QObject中的 eventFilter 事件过滤器重写
+ * 事件过滤返回 true 过滤成功 事件停止转发, false 过滤失败,事件继续转发
+ * @brief MyLabel::eventFilter 事件过滤器
+ * @param watched  事件发生的控件
+ * @param event  具体的事件 如 时间 鼠标移动 按下等
+ * @return
+ */
+bool MyLabel::eventFilter(QObject *watched, QEvent *event)
+{
+    // 先判断事件发生的控件
+    if(this == watched) {
+        if(QEvent::MouseButtonPress == event->type()) {
+            qDebug()<<"事件过滤器中鼠标被单击了!";
+            // 将QEvent转换为 QMouseEvent
+            QMouseEvent *ev = static_cast<QMouseEvent *>(event);
+
+            qDebug("过滤器中的鼠标坐标:x=%d, y=%d ", ev->x(), ev->y() );
+        }
+    }
+
+    // 其他的交给父类的过滤器处理
+    return QLabel::eventFilter(watched, event);
+
+
+
 }
